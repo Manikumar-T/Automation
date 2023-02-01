@@ -6,10 +6,14 @@ import  psutil,os,json
 
 battery = psutil.sensors_battery()
 os.system("journalctl -b --user-unit pulseaudio -g \"Battery Level\" -r -n 1 -o json > info.json")
-f = open("info.json")
-data= json.load(f)
-blue_con=sp.getoutput("hcitool con").split()
 blue_stat="Not connected"
+try:
+    f = open("info.json")
+    data= json.load(f)
+except:
+    blue_stat="no bluetooth connect after boot"
+blue_con=sp.getoutput("hcitool con").split()
+
 print("\tSystem  info\t\t\t\tBluetooth info ")
 print("\t============\t\t\t\t===============")
 
