@@ -4,11 +4,13 @@ from datetime import date
 import subprocess as sp
 import  psutil,os,json
 
+user_name = os.getlogin()
 battery = psutil.sensors_battery()
-os.system("journalctl -b --user-unit pulseaudio -g \"Battery Level\" -r -n 1 -o json > info.json")
+os.system("journalctl -b --user-unit pulseaudio -g \"Battery Level\" -r -n 1 -o json > /home/"+user_name+"/info.json")
 blue_stat="Not connected"
+
 try:
-    f = open("info.json")
+    f = open("/home/"+user_name+"/info.json")
     data= json.load(f)
 except:
     blue_stat="no bluetooth connect after boot"
@@ -34,3 +36,4 @@ print("\tDate: ",date.today())
 print("\t\t\twifi info")
 print("\t\t\t=========")
 print(sp.getoutput("nmcli dev stat"))
+print("User name: ",os.getlogin())
