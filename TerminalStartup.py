@@ -13,6 +13,7 @@ try:
     f = open("/home/"+user_name+"/info.json")
     data= json.load(f)
 except:
+    data={}
     blue_stat="no bluetooth connect after boot"
 blue_con=sp.getoutput("hcitool con").split()
 
@@ -21,7 +22,7 @@ print("\t============\t\t\t\t===============")
 
 print("Battery percentage: ",int(battery.percent),"%",end="\t\t",sep="")
 #check the bluetooth Devices connection status
-if(len(blue_con)!=1):
+if(len(blue_con)!=1 and data!={}):
     print("\t",data['MESSAGE'],end="")
     if("8C:64:A2:6D:25:B3" in blue_con):
         blue_stat="Mani's oneplus"
