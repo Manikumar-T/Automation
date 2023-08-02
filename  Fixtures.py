@@ -10,43 +10,59 @@ Teams=['Immortals',
 'Vigilantes','mani']
 
 FixtureDict ={}
-
-def pair(list):
+edgeDict={}
+grpah = pydot.Dot(graph_type='digraph')
+def pair(list,value):
     temp=[]
+    print(value)
     for i in range(0,len(list),2):
         str1=''
-        #print(list[i:i+2])
-        for i in list[i:i+2]:
+        for j in list[i:i+2]:
+            str1+=str(j).replace('vs','/')+" vs "
 
-            str1+=str(i).replace('vs','/')+" vs "
+        edgeDict[tuple(list[i:i+2])]=str1.strip(' vs ')
+
         temp.append(str1.strip(' vs '))
+    for j in temp :
+             grpah.add_node(pydot.Node(name=j))
     return temp
 
 def genFixtureDict():
     dictTemp=Teams
     value=2
     FixtureDict[1]=Teams
+    for j in Teams:
+        grpah.add_node(pydot.Node(name=j))
+
     while(len(dictTemp)!=1):
-        dictTemp = pair(dictTemp)
+        dictTemp = pair(dictTemp,value)
         print('{} pair length: {}'.format(dictTemp,len(dictTemp)))
         FixtureDict[value] = dictTemp
         value+=1
 
     print(FixtureDict)
+#def genEdge():
+     
+         
+         
 
-grpah = pydot.Dot(graph_type='digraph')
 def genFixtures():
     
     random.shuffle(Teams)
     print(Teams)
     genFixtureDict()
-    for i in FixtureDict.keys():
-        for j in FixtureDict[i]:
-            grpah.add_node(pydot.Node(name=j))
+    # for i in FixtureDict.keys():
+    #     for j in FixtureDict[i]:
+    #         grpah.add_node(pydot.Node(name=j))
   
-            
-
+       
+    for i in edgeDict.keys():
+        for j in i:
+            if(j != edgeDict[i]):
+                grpah.add_edge(pydot.Edge(j,edgeDict[i]))
+             
     grpah.write_png('output.png')
+
 genFixtures()
 
 
