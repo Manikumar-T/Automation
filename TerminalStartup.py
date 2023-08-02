@@ -4,37 +4,62 @@ from datetime import date
 import subprocess as sp
 import  psutil,os,json
 
+from table2ascii import table2ascii, Merge, PresetStyle
+#Get user name
 user_name = os.getlogin()
+#Get System Battery level
 battery = psutil.sensors_battery()
+#System call for journalctl to read bluetooth device info
 os.system("journalctl -b --user-unit pulseaudio -g \"Battery Level\" -r -n 1 -o json > /home/"+user_name+"/info.json")
+#Default Values 
 blue_stat="Not connected"
+blu_BLevel="-"
+blu_DName ="Not connected"
 
+#Read the Bluetooth device info from info.json file
 try:
     f = open("/home/"+user_name+"/info.json")
     data= json.load(f)
 except:
     data={}
-    blue_stat="no bluetooth connect after boot"
-blue_con=sp.getoutput("hcitool con").split()
+    blue_stat="Not connected"
 
-print("\tSystem  info\t\t\t\tBluetooth info ")
-print("\t============\t\t\t\t===============")
 
-print("Battery percentage: ",int(battery.percent),"%",end="\t\t",sep="")
-#check the bluetooth Devices connection status
-if(len(blue_con)!=1 and data!={}):
-    print("\t",data['MESSAGE'],end="")
-    if("8C:64:A2:6D:25:B3" in blue_con):
-        blue_stat="Mani's oneplus"
-    else:
-        blue_stat="unknow device"
-print("\nCharging state: ","Charging" if battery.power_plugged==True else "discharging",end="")
-print("\t\t Bluetooth Device: ",blue_stat)
-hrs=int(datetime.now().strftime("%H"))%12
-print("\n \t\tTime: ",hrs,datetime.now().strftime(":%M:%S"),sep="",end="")
-print("\tDate: ",date.today())
+##Get the bluetooth device deatails using bluetoothctl
+blue_con=sp.getoutput("bluetoothctl info").split("\n")
 
-print("\t\t\twifi info")
-print("\t\t\t=========")
-print(sp.getoutput("nmcli dev stat"))
-print("User name: ",os.getlogin())
+# Device Battery Info data
+batteryPercentage =str(int(battery.percent))+"%"
+chargingStatus = "Charging" if battery.power_plugged==True else "discharging"
+
+#check the bluetooth Devices connection status and data
+if(len(blue_con)!=2 and data!={}):
+    blu_BLevel = data["MESSAGE"].split(":")[1]
+    blu_DName = blue_con[1].split(": ")[1]
+
+#Get the time
+time=str(int(datetime.now().strftime("%H"))%12)+datetime.now().strftime(":%M:%S")
+
+#Get network Device data
+wifi = sp.getoutput("nmcli dev status | grep wifi ")
+LAN = sp.getoutput("nmcli dev status | grep ethernet")
+
+
+#Create Table form of data
+output = table2ascii(
+    header=["System Info",Merge.LEFT,"Bluetooth Info",Merge.LEFT],
+    body=[
+        ["Battery Level",batteryPercentage,"Battery Level",blu_BLevel],
+        ["Charging state",chargingStatus,"Device Name",blu_DName],
+        ["Time",time,"",Merge.LEFT],
+        ["Data",date.today(),"",Merge.LEFT],
+        ["Network Info",Merge.LEFT,Merge.LEFT,Merge.LEFT],
+        [wifi,Merge.LEFT,Merge.LEFT,Merge.LEFT],
+        [LAN,Merge.LEFT,Merge.LEFT,Merge.LEFT],        
+    ],
+
+    style=PresetStyle.double_thin_box,
+    first_col_heading=True,
+)
+#print the tabled data
+print(output)
