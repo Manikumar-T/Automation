@@ -1,0 +1,21 @@
+/venv
+#Text files to ignore
+data.txt
+
+#python files to ignore
+demo.py
+Faculty*.py
+Cli*.py
+Ex3*.docx
+Student*.py
+
+#image to ignore
+output.png
+
+#workspace to ignore
+Scripting.code*
+
+table
+TerminalStartup
+
+
