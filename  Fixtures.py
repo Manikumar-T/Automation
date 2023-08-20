@@ -7,11 +7,16 @@ Teams=['Immortals',
 'Troubleshooters',
 'Strikers',
 'Vaporizers',
-'Vigilantes','mani']
+'Vigilantes',
+'mani',
+
+]
 
 FixtureDict ={}
 edgeDict={}
-grpah = pydot.Dot(graph_type='digraph')
+grpah = pydot.Dot(graph_type='graph',rankdir='LR')
+Match_num =1
+
 def pair(list,value):
     temp=[]
     print(value)
@@ -24,7 +29,9 @@ def pair(list,value):
 
         temp.append(str1.strip(' vs '))
     for j in temp :
-             grpah.add_node(pydot.Node(name=j))
+             #grpah.add_node(pydot.Node(name=j))
+             grpah.add_node(Match_num)
+             Match_num+=1
     return temp
 
 def genFixtureDict():
@@ -32,7 +39,7 @@ def genFixtureDict():
     value=2
     FixtureDict[1]=Teams
     for j in Teams:
-        grpah.add_node(pydot.Node(name=j))
+        grpah.add_node(pydot.Node(name=j,shape ='box'))
 
     while(len(dictTemp)!=1):
         dictTemp = pair(dictTemp,value)
