@@ -10,13 +10,17 @@ import re
 import json
 #To display data clearly
 import pprint
-
+#To use as github as the Remote backup
+from git import Repo
 # Dict to store the configration
+from datetime import datetime
 configDict={
     "Manjaro_package":[],
     "snap_package":[],
     "config":[],
-    "vscode_extenstion":[]
+    "vscode_extenstion":[],
+    "stage_file":[],
+    "git-Remote":{"url":"","author":"","email":""}
 
 }
 
@@ -51,7 +55,6 @@ class ConfigFile:
                 print("Search config file...")
                 if(os.path.isfile('.backup/config.json')):
                       self.readconfig()
-                      print()
         
                 
     #Write the json config file
@@ -93,7 +96,7 @@ class ConfigFile:
         
     
 #Backup the distro package, snap package list
-class Backup:
+class LocalBackup:
 
     def __init__(self,platform) -> None:
         self.platformname = str(platform)
@@ -169,19 +172,86 @@ class Backup:
         #store the list into to config dict
         configDict["vscode_extenstion"] = vsExtenstionList
    
+class RemoteBackup():
 
+    def __init__(self) -> None:
+        global configDict
+        #create the bacukup folder url
+        self.backup_url = os.getcwd()+"/.backup"
+        #initialize a git to use the gitpython use like git commmand
+
+        #check backup folder exitst
+        print("check with backup url:",os.path.exists(self.backup_url))
+        if(os.path.exists(self.backup_url)):
+            
+            try:
+               print("Get the details")
+               self.getRemoteUrl()
+               if(not(os.path.exists(self.backup_url+"/.git"))):
+                   print("git clone....")
+                   self.repo = Repo.clone_from(configDict["git-Remote"]['url'], self.backup_url)
+               else:
+                print("git already initialized...")
+                self.repo = Repo(self.backup_url)
+            except:
+                print("Unable to Clone git check your connection...🤕")
+            
+
+
+    #function to get the url,authorname, email of the author and remote repo    
+    def getRemoteUrl(self):
+        print("Get url, name, and email")
+        if(configDict['git-Remote']['url']==""):
+            configDict['git-Remote']['url'] = input("Enter the git remote repo: ")
+            configDict['git-Remote']['author'] = input("Enter the author Name: ")
+            configDict['git-Remote']['email'] = input("Enter the email of author: ")
+    #function to push the local change to remote chage
+    def pushToRemote(self):
+         
+           
+            try:
+                if(self.repo != None): 
+                    #Get the untrack file
+                    configDict["stage_file"] = self.repo._get_untracked_files()
+                    print("stage file list",configDict["stage_file"])
+                    #Stage all the changes
+                    self.repo.index.add(configDict["stage_file"])
+                    print("files staged....")
+                else:
+                    print("Git Repo not initialized....")
+            except:
+                    print("Git stage faild....")
+
+            try:
+                #check if the local repository in initialized or not
+                if(self.repo != None):
+                    self.repo.index.commit(datetime.today())
+                else:
+                    print("Git Repo not initialized....")
+
+            except:
+                print("git commit faild....")
+
+
+           
+            
+        
+
+
+                
+        
 
 
             
             
-                
-                
 fconfig =ConfigFile()
-obj1 = Backup(SystemInfo())
+remote = RemoteBackup()       
+obj1 = LocalBackup(SystemInfo())
 obj1.getDistroPackage()
 obj1.getSnapPackage()
 obj1.getConfigList()
 obj1.getVsExtList()
 fconfig.writeConfig()
 fconfig.CreateSymLink()
+remote.pushToRemote()
 pprint.pprint(configDict)
