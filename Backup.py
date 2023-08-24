@@ -4,23 +4,22 @@ import platform
 import subprocess as sp
 #To do the os relatee operation
 import os
-
-import re
 #To read and write the configration dictnory
 import json
 #To display data clearly
 import pprint
 #To use as github as the Remote backup
 from git import Repo
-# Dict to store the configration
+#To get the today date and time
 from datetime import datetime
+# Dict to store the configration
 configDict={
     "Manjaro_package":[],
     "snap_package":[],
     "config":[],
     "vscode_extenstion":[],
-    "stage_file":[],
-    "git-Remote":{"url":"","author":"","email":""}
+    #"stage_file":[],
+    "git-Remote":{"url":""}#,"author":"","email":""}
 
 }
 
@@ -181,7 +180,6 @@ class RemoteBackup():
         #initialize a git to use the gitpython use like git commmand
 
         #check backup folder exitst
-        print("check with backup url:",os.path.exists(self.backup_url))
         if(os.path.exists(self.backup_url)):
             
             try:
@@ -203,34 +201,51 @@ class RemoteBackup():
         print("Get url, name, and email")
         if(configDict['git-Remote']['url']==""):
             configDict['git-Remote']['url'] = input("Enter the git remote repo: ")
-            configDict['git-Remote']['author'] = input("Enter the author Name: ")
-            configDict['git-Remote']['email'] = input("Enter the email of author: ")
-    #function to push the local change to remote chage
-    def pushToRemote(self):
-         
-           
+            # configDict['git-Remote']['author'] = input("Enter the author Name: ")
+            # configDict['git-Remote']['email'] = input("Enter the email of author: ")
+    #Get the untrack file and change file
+    def getChange(self):
             try:
+                #check if the local repository in initialized or not
                 if(self.repo != None): 
-                    #Get the untrack file
-                    configDict["stage_file"] = self.repo._get_untracked_files()
-                    print("stage file list",configDict["stage_file"])
+                    #Get the untracked file
+                    untracked_list = self.repo._get_untracked_files()
+                    #Get the get diffence file
+                    diff_list = [i.a_path for i in self.repo.index.diff(None)]
+                    # configDict["stage_file"] = list(set(untracked_list+diff_list))
+                    # print("stage file list",configDict["stage_file"])
                     #Stage all the changes
-                    self.repo.index.add(configDict["stage_file"])
+                    self.repo.index.add("**", force=True)
                     print("files staged....")
+                   
                 else:
                     print("Git Repo not initialized....")
             except:
                     print("Git stage faild....")
+             
+    
+    #function to push the local change to remote chage
+    def pushToRemote(self):
 
+            #Get the changes...
+            self.getChange()
             try:
                 #check if the local repository in initialized or not
                 if(self.repo != None):
-                    self.repo.index.commit(datetime.today())
+                    self.repo.index.commit(str(datetime.today()))
                 else:
                     print("Git Repo not initialized....")
 
             except:
                 print("git commit faild....")
+
+
+            try:               
+                #push the change to remote repo
+                print("Push the change...")
+                self.repo.git.push()
+            except:
+                print("Check internet connectivity...")
 
 
            
