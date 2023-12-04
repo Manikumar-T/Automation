@@ -3,6 +3,7 @@ from datetime import datetime
 from datetime import date
 import subprocess as sp
 import  psutil,os,json
+import netifaces as ni
 
 from table2ascii import table2ascii, Merge, PresetStyle
 #Get user name
@@ -23,6 +24,14 @@ try:
 except:
     data={}
     blue_stat="Not connected"
+
+#Get ip devices ip address
+try:
+    interface = 'enp3s0' if len(ni.ifaddresses('wlo1'))==1 else 'wlo1'
+    ip_address=ni.ifaddresses(interface)[2][0]['addr']                                
+except:
+    ip_address='null'
+
 
 
 ##Get the bluetooth device deatails using bluetoothctl
@@ -51,8 +60,8 @@ output = table2ascii(
     body=[
         ["Battery Level",batteryPercentage,"Battery Level",blu_BLevel],
         ["Charging state",chargingStatus,"Device Name",blu_DName],
-        ["Time",time,"",Merge.LEFT],
-        ["Data",date.today(),"",Merge.LEFT],
+        ["Time",time,"IP"+f"({interface})",ip_address],
+        ["Data",date.today(),'',Merge.LEFT],
         ["Network Info",Merge.LEFT,Merge.LEFT,Merge.LEFT],
         [wifi,Merge.LEFT,Merge.LEFT,Merge.LEFT],
         [LAN,Merge.LEFT,Merge.LEFT,Merge.LEFT],        
